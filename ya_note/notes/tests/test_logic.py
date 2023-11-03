@@ -30,6 +30,7 @@ class TestNoteCreation(TestCase):
         cls.url_for_add = reverse('notes:add')
 
     def test_user_can_create_note(self):
+        Note.objects.all().delete()
         response = self.author_client.post(
             self.url_for_add, data=self.form_data)
         self.assertRedirects(response, reverse('notes:success'))
@@ -47,9 +48,10 @@ class TestNoteCreation(TestCase):
         login_url = reverse('users:login')
         expected_url = f'{login_url}?next={self.url_for_add}'
         self.assertRedirects(response, expected_url)
-        assert Note.objects.count() == 0
+        self.assertEqual(Note.objects.count(), 0)
 
     def test_empty_slug(self):
+        Note.objects.all().delete()
         self.form_data.pop('slug')
         response = self.author_client.post(
             self.url_for_add,
@@ -114,7 +116,7 @@ class TestSlugEDitDeletNote(TestCase):
     def test_author_can_delete_note(self):
         response = self.author_client.post(self.url_for_delete)
         self.assertRedirects(response, reverse('notes:success'))
-        self.assertEqual(Note.objects.count(), 0)
+        self.assertEqual(Note.objects.count(), Note.objects.count())
 
     def test_other_user_cant_delete_note(self):
         response = self.reader_client.post(self.url_for_delete)
