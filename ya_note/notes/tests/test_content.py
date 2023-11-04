@@ -1,12 +1,15 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+
 from notes.models import Note
+from notes.forms import NoteForm
 
 User = get_user_model()
 
 
 class TestContent(TestCase):
+    URL_LIST = reverse('notes:list')
 
     @classmethod
     def setUpTestData(cls):
@@ -16,30 +19,31 @@ class TestContent(TestCase):
             title='Заголовок',
             text='Текст',
             author=cls.author,
+            slug='Slug'
         )
         cls.add_url = reverse('notes:add')
 
-    def test_note_visibl_for_author(self):
-        url = reverse('notes:list')
-        self.client.force_login(self.author)
-        response = self.client.get(url)
-        object_list = response.context['object_list']
-        self.assertIn(self.note, object_list)
+    def test_note_visibility(self):
+        users = (
+            (self.author, self.assertIn),
+            (self.reader, self.assertNotIn)
+        )
 
-    def test_note_visibl_for_reader(self):
-        url = reverse('notes:list')
-        self.client.force_login(self.reader)
-        response = self.client.get(url)
-        object_list = response.context['object_list']
-        self.assertNotIn(self.note, object_list)
+        for user, viss_assert in users:
+            self.client.force_login(user)
+            with self.subTest(user=user):
+                response = self.client.get(self.URL_LIST)
+                object_list = response.context['object_list']
+                viss_assert(self.note, object_list)
 
-    def test_edit_form(self):
-        self.client.force_login(self.author)
-        url = reverse('notes:edit', args=(self.note.slug,))
-        response = self.client.get(url)
-        self.assertIn('form', response.context)
-
-    def test_add_form(self):
-        self.client.force_login(self.author)
-        response = self.client.get(self.add_url)
-        self.assertIn('form', response.context)
+    def test_edit_add_form(self):
+        urls = (
+            ('notes:add', None),
+            ('notes:edit', (self.note.slug,)),
+        )
+        for user, args in urls:
+            with self.subTest(user=user):
+                self.client.force_login(self.author)
+                response = self.client.get(reverse(user, args=args))
+                self.assertIn('form', response.context)
+                self.assertIsInstance(response.context['form'], NoteForm)

@@ -1,7 +1,6 @@
 from http import HTTPStatus
 
 import pytest
-
 from django.urls import reverse
 from pytest_django.asserts import assertFormError, assertRedirects
 
@@ -11,10 +10,10 @@ from news.forms import WARNING
 
 @pytest.mark.django_db
 def test_anonimus_cant_post_comment(
-    client,
-    form_data,
-    url_detail,
-    url_login
+        client,
+        form_data,
+        url_detail,
+        url_login
 ):
     response = client.post(url_detail, data=form_data)
     expected_redirect = f'{url_login}?next={url_detail}'
@@ -24,11 +23,11 @@ def test_anonimus_cant_post_comment(
 
 @pytest.mark.django_db
 def test_auth_user_can_create_comment(
-    author,
-    author_client,
-    form_data,
-    news,
-    url_detail
+        author,
+        author_client,
+        form_data,
+        news,
+        url_detail
 ):
     response = author_client.post(url_detail, data=form_data)
     comments_count = Comment.objects.count()
@@ -43,9 +42,9 @@ def test_auth_user_can_create_comment(
 
 @pytest.mark.django_db
 def test_users_cant_use_badwords_(
-    bad_words_text,
-    author_client,
-    url_detail
+        bad_words_text,
+        author_client,
+        url_detail
 ):
     response = author_client.post(url_detail, data=bad_words_text)
     assertFormError(response, 'form', 'text', [WARNING])
@@ -75,9 +74,8 @@ def test_author_can_edit_comment(
 def test_author_delete_comment(author_client, comment):
     delete_url = reverse('news:delete', args=(comment.id,))
     response = author_client.post(delete_url)
-    comment_exists = Comment.objects.filter(pk=comment.id).exists()
     assert response.status_code == HTTPStatus.FOUND
-    assert not comment_exists
+    assert not Comment.objects.filter(pk=comment.id).exists()
 
 
 @pytest.mark.django_db
@@ -99,8 +97,6 @@ def test_user_cant_edit_comment_of_another_user(
 
 
 def test_user_cant_delete_comment(admin_client, comment, url_delete):
-    comment_count_first = Comment.objects.count()
     response = admin_client.post(url_delete)
     assert response.status_code == HTTPStatus.NOT_FOUND
-    comment_count_last = Comment.objects.count()
-    assert comment_count_first == comment_count_last
+    assert Comment.objects.count() == Comment.objects.count()

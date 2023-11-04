@@ -17,8 +17,7 @@ FIXT_URL_DELETE = pytest.lazy_fixture('url_delete')
 @pytest.mark.parametrize(
     'url',
     (FIXT_URL_HOME, FIXT_URL_LOGIN, FIXT_URL_LOGOUT,
-     FIXT_URL_SIGNUP, FIXT_URL_DETAIL
-     )
+     FIXT_URL_SIGNUP, FIXT_URL_DETAIL)
 )
 def test_home_availability_for_annonim_user(client, url):
     response = client.get(url)

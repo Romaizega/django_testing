@@ -1,9 +1,10 @@
-import datetime
+from datetime import timedelta
 
 import pytest
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 from django.test import Client
 
 from news.forms import BAD_WORDS
@@ -41,15 +42,34 @@ def news(author):
     return News.objects.create(
         title='Заголовок',
         text='Текст',
-        date=datetime.datetime.today()
+        date=timezone.now()
     )
 
 
 @pytest.fixture
 def create_news():
-    def create_news(title, text, date):
-        return News.objects.create(title=title, text=text, date=date)
-    return create_news
+    news_list = []
+    for i in range(settings.NEWS_COUNT_ON_HOME_PAGE):
+        news = News.objects.create(
+            title='title',
+            text='text {index}',
+            date=timezone.now() + timedelta(days=i)
+        )
+        news_list.append(news)
+    return len(news_list)
+
+
+@pytest.fixture
+def create_comment(author, news):
+    now = timezone.now()
+    for i in range(10):
+        comment = Comment.objects.create(
+            news=news,
+            author=author,
+            text='Test commen {i}',
+        )
+        comment.created = now + timedelta(days=i)
+        comment.save()
 
 
 @pytest.fixture
@@ -64,11 +84,6 @@ def comment(author, news):
 @pytest.fixture
 def comment_id(comment):
     return (comment.id),
-
-
-@pytest.fixture
-def fixt_news_count():
-    return settings.NEWS_COUNT_ON_HOME_PAGE + 1
 
 
 @pytest.fixture
