@@ -97,6 +97,7 @@ def test_user_cant_edit_comment_of_another_user(
 
 
 def test_user_cant_delete_comment(admin_client, comment, url_delete):
+    count_comment = Comment.objects.count()
     response = admin_client.post(url_delete)
     assert response.status_code == HTTPStatus.NOT_FOUND
-    assert Comment.objects.count() == Comment.objects.count()
+    assert Comment.objects.count() == count_comment

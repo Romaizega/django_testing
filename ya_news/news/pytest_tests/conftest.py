@@ -49,14 +49,14 @@ def news(author):
 @pytest.fixture
 def create_news():
     news_list = []
-    for i in range(settings.NEWS_COUNT_ON_HOME_PAGE):
-        news = News.objects.create(
+    for i in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1):
+        news = News(
             title='title',
             text='text {index}',
             date=timezone.now() + timedelta(days=i)
         )
         news_list.append(news)
-    return len(news_list)
+    News.objects.bulk_create(news_list)
 
 
 @pytest.fixture

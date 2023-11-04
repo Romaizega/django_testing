@@ -1,6 +1,7 @@
 import pytest
 
 from news.forms import CommentForm
+from django.conf import settings
 
 pytestmark = pytest.mark.django_db
 
@@ -9,18 +10,18 @@ def test_news_count(client, url_home, create_news):
     response = client.get(url_home)
     object_list = response.context.get('object_list')
     assert object_list is not None
-    assert len(object_list) == create_news
+    assert len(object_list) <= settings.NEWS_COUNT_ON_HOME_PAGE
 
 
-def test_news_sorted(client, url_home, news):
+def test_news_sorted(client, url_home, create_news):
     response = client.get(url_home)
     object_list = response.context.get('object_list')
     assert object_list is not None
-    dates = [news.date for news in object_list]
+    dates = [create_news.date for create_news in object_list]
     assert sorted(dates, reverse=True) == dates
 
 
-def test_comments_sorted(client, news, url_detail):
+def test_comments_sorted(client, create_comment, url_detail):
     response = client.get(url_detail)
     news = response.context.get('news')
     assert news is not None

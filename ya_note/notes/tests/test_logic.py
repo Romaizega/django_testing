@@ -119,7 +119,7 @@ class TestSlugEDitDeletNote(TestCase):
         count_note = Note.objects.count()
         response = self.author_client.post(self.url_for_delete)
         self.assertRedirects(response, reverse('notes:success'))
-        self.assertEqual(count_note - 1, Note.objects.count())
+        self.assertEqual(Note.objects.count(), count_note - 1)
 
     def test_other_user_cant_delete_note(self):
         count_note = Note.objects.count()
